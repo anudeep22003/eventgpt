@@ -1,8 +1,10 @@
 from typing import Generator
 
 from .db.session import SessionLocal
+from contextlib import contextmanager
 
 
+@contextmanager
 def get_db() -> Generator:
     db = SessionLocal()
     try:

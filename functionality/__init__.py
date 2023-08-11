@@ -1,1 +1,1 @@
-from functionality.chat import converser
+# from functionality.chat import converser

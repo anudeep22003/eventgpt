@@ -77,6 +77,7 @@ target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
+notebooks/
 
 # IPython
 profile_default/
@@ -161,3 +162,12 @@ cython_debug/
 
 # data files
 data/
+
+# db 
+*.db
+
+# api design files
+*.raml
+
+# any xml files
+*.xml
