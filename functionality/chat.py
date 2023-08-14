@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app import schemas
 from functionality.ai_models import chat_client
 import langchain.llms
+from llama_index import Prompt
 
 import logging
 
@@ -44,7 +45,7 @@ class ConversationManager:
             return False
 
     def get_system_prompt(self) -> str:
-        return """You are an agent trained to assist humans in a conversational form. Use the context of the human's and your own responses above to best answer the below query as an agent."""
+        return """You are an agent trained to assist humans in a conversational form. Use the context of the human's and your own responses above to best answer the below query as an agent. Use only the context information without relying on prior knowledge. Respond in markdown format.\nIf you are unable to answer using the given context, respond with "The organizer does not seem to have shared this information. Try visiting the website yourself." \n\nAnswer the following question: {query_str}\n"""
 
     #######################################################
     ######### conversation context initialization #########
@@ -98,7 +99,16 @@ class ConversationManager:
         combined_context_string = "\n".join(context_msg_list)
 
         logger.info(f"{'-'*30}\n{combined_context_string}\n\n")
-        return combined_context_string
+        #! changed this to be a prompt of the type llama index likes, change later if nec
+        return Prompt(combined_context_string)
 
+class SingleConversationManager:
+    def __init__(self, llm_client: langchain.llms) -> None:
+        self.client = llm_client
+        pass
+
+    def get_index(self)
+
+    def __call__(self, )
 
 converser = ConversationManager(chat_client)

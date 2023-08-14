@@ -14,6 +14,16 @@ from app import models, schemas, crud, db
 from app.deps import get_db
 
 
+def check_if_domain_exists(url: str) -> bool:
+    "check if domain exists in the database"
+    domain = urlparse(url).netloc
+    with get_db() as db:
+        domain_from_db = crud.domain.get_domain_by_name(db=db, domain=domain)
+    if domain_from_db is None:
+        return False
+    return True
+
+
 class IndexLoad:
     def __init__(self, url_home: str, freq_limit: int) -> None:
         self.url_home = url_home

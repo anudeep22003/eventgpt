@@ -16,5 +16,13 @@ class CRUDSiteUrl(CRUDBase[models.SiteUrl, schemas.SiteUrlCreate]):
         db.refresh(db_obj)
         return db_obj
 
+    def get_urls_by_domain(self, db: Session, *, domain: str) -> list[models.SiteUrl]:
+        return (
+            db.query(self.model)
+            .filter(self.model.domain == domain)
+            .order_by(self.model.ts_created)
+            .all()
+        )
+
 
 siteurl = CRUDSiteUrl(models.SiteUrl)
