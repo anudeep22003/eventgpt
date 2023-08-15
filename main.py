@@ -10,6 +10,7 @@ from app import schemas, models
 from app import deps
 from app import crud
 import functionality
+from functionality.conversation import UnitConversationManager
 
 # Project directories
 ROOT = Path(__file__).resolve().parent.parent
@@ -26,8 +27,16 @@ def root(request: Request, db: Session = Depends(deps.get_db)) -> dict:
     return {"HWE": "I seem to be working correctly"}
 
 
+@api_router.get("/converse-website/", status_code=200, response_model=schemas.Message)
+async def converse_with_website(
+    query_input: schemas.QueryApiInputBaseClass, db: Session = Depends(deps.get_db)
+) -> schemas.Message:
+    conv_manager = UnitConversationManager()
+    return conv_manager(query_input=query_input)
+
+
 @api_router.get("/converse/", status_code=200, response_model=schemas.Message)
-def converse(
+async def converse(
     input_msg: schemas.MessageCreate, db: Session = Depends(deps.get_db)
 ) -> schemas.Message:
     # add message to database

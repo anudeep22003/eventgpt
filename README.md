@@ -1,5 +1,9 @@
 # Running the server
 
+# Open Bugs:
+
+- [ ] Is unable to build a new index if a domain isn't already indexed. Returns an emppty response. Look at `QueryRagIndex`
+
 from root directory run
 `sh ./run.sh`
 

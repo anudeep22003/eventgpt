@@ -102,13 +102,5 @@ class ConversationManager:
         #! changed this to be a prompt of the type llama index likes, change later if nec
         return Prompt(combined_context_string)
 
-class SingleConversationManager:
-    def __init__(self, llm_client: langchain.llms) -> None:
-        self.client = llm_client
-        pass
-
-    def get_index(self)
-
-    def __call__(self, )
 
 converser = ConversationManager(chat_client)
