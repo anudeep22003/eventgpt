@@ -6,10 +6,11 @@ from functionality.extract import check_if_domain_exists, IndexEventPage
 from functionality.rag_index import QueryRagIndex
 import logging
 import os
+from urllib.parse import urlsplit
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-fh = logging.FileHandler(f"logs/{__name__}.log", mode="w+")
+fh = logging.FileHandler(f"logs/{__name__}.log", mode="a")
 fh.setLevel(logging.INFO)
 logger.addHandler(fh)
 
@@ -42,7 +43,8 @@ class UnitConversationManager:
 
     def __call__(self, query_input: QueryApiInputBaseClass) -> models.Message:
         "generate a response based on domain and query"
-        domain, query = query_input.domain, query_input.query
+        domain = urlsplit(query_input.domain).netloc
+        query = query_input.query
         # create new conversation id
         conv_id = self.get_new_conv_id(domain=domain)
         q = QueryRagIndex(domain=domain)
@@ -59,7 +61,7 @@ class UnitConversationManager:
             content=str(response_object),
             sender="system",
             receiver="human",
-            sources="\n".join(
+            sources=",\n".join(
                 [
                     node.node_id
                     for node_with_score in response_object.source_nodes

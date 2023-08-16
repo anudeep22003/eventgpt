@@ -1,6 +1,20 @@
 # Running the server
 
-# Open Bugs:
+## Critical Bugs
+
+- [ ] Is not working with new url it has never seen or downloaded (eg: https://www.saudifoodexpo.com/)
+- [ ] Rewriting the index and erasing the prev one
+
+## Tasks
+
+- [ ] Handle cases where the event page is undera subdomain of a larger company wevbsite. Eg: `www.google.com/events/GSOC` all relevant links are daughters
+- [-] Capture the right sources, currently doc_ids are being stored in sources.`needs to get better, recursive tree`
+- [x] Create sitemap even if it doesnt exist using pagerank
+- [ ] Ensure that if a domain not indexed is passed, then a new indexing starts
+- [ ] To keep complexity low we will index only the first 20 pages
+- [ ] Index only event pages, not post pages (how do you differentiate?)
+
+## Open Bugs:
 
 - [ ] Is unable to build a new index if a domain isn't already indexed. Returns an emppty response. Look at `QueryRagIndex`
 

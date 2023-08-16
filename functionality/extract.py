@@ -9,6 +9,7 @@ from collections import Counter
 from usp.tree import sitemap_tree_for_homepage
 from sqlalchemy.orm import Session
 from functools import wraps
+from functionality.sitemap import SitemapBuilder
 
 from app import models, schemas, crud, db
 from app.deps import get_db
@@ -77,12 +78,14 @@ class IndexEventPage:
 
     @timer
     def get_sitemap(self, url: str) -> list[str]:
-        "get all possible sitemaps from the url"
-        sitemap_collection = sitemap_tree_for_homepage(url)
-        all_urls = list(set([page.url for page in sitemap_collection.all_pages()]))
-        if not bool(all_urls):
-            return None
-        return all_urls
+        # "get all possible sitemaps from the url"
+        # sitemap_collection = sitemap_tree_for_homepage(url)
+        # all_urls = list(set([page.url for page in sitemap_collection.all_pages()]))
+        # if not bool(all_urls):
+        #     return None
+        s = SitemapBuilder()
+        sitemap, _ = s(url)
+        return sitemap
 
     def construct_sitemap(self):
         "if sitemap does not exist, construct using internal ahref links"
@@ -140,7 +143,7 @@ class IndexEventPage:
                 else:
                     html_text = siteurl.html
                 soup = self.build_soup(html_text)
-                self.add_to_ranks(soup)
+                self.build_ranks(soup)
                 # save html content to db?
                 # make siteurl db entry for each url
                 if siteurl is None:
@@ -182,7 +185,7 @@ class IndexEventPage:
         "build a soup object from the html text"
         return BeautifulSoup(html_text, "html.parser")
 
-    def add_to_ranks(self, soup: BeautifulSoup) -> None:
+    def build_ranks(self, soup: BeautifulSoup) -> None:
         "add to both textrank and pagerank"
         # build pagrank
         for link in soup.find_all("a"):
