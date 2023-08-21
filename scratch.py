@@ -15,11 +15,13 @@ if __name__ == "__main__":
             domain = u_input
         print(f"selected domain: {domain}")
         u_input = input("Enter a query: ")
+        if u_input == "q":
+            break
         query = u_input
         query_input = schemas.QueryApiInputBaseClass(domain=domain, query=query)
         response = u(query_input=query_input)
+        print("-" * 20, " Response ", "-" * 20)
         print(response.content)
-        print("-" * 30)
-        print(response)
-        if u_input == "q":
-            break
+        print("-" * 20, " Sources ", "-" * 20)
+        print(response.sources)
+        print("-" * 40, "\n")

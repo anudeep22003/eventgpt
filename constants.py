@@ -7,3 +7,5 @@ from starlette.datastructures import (
 config = Config(".env")
 
 OPENAI_API_KEY = config("OPENAI_API_KEY", cast=Secret)
+
+SIMILARITY_TOP_K = 3

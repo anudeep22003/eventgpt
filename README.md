@@ -7,6 +7,8 @@
 
 ## Tasks
 
+- [ ] Handle that sources are paths not links
+- [ ] Handle https://interfoamvietnam.com/en/ here the event page is a subdomain of the main website
 - [ ] Handle cases where the event page is undera subdomain of a larger company wevbsite. Eg: `www.google.com/events/GSOC` all relevant links are daughters
 - [-] Capture the right sources, currently doc_ids are being stored in sources.`needs to get better, recursive tree`
 - [x] Create sitemap even if it doesnt exist using pagerank

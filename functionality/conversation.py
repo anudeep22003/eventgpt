@@ -6,7 +6,7 @@ from functionality.extract import check_if_domain_exists, IndexEventPage
 from functionality.rag_index import QueryRagIndex
 import logging
 import os
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, SplitResult
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -27,9 +27,9 @@ class UnitConversationManager:
     def __init__(self) -> None:
         pass
 
-    def get_new_conv_id(self, domain) -> int:
+    def get_new_conv_id(self, urlsplit_obj: SplitResult) -> int:
         "generate a conversation id"
-        new_conv = schemas.ConversationCreate(domain=domain)
+        new_conv = schemas.ConversationCreate(domain=urlsplit_obj.netloc)
 
         with get_db() as db:
             conv = crud.conversation.create(db=db, obj_in=new_conv)
@@ -43,11 +43,11 @@ class UnitConversationManager:
 
     def __call__(self, query_input: QueryApiInputBaseClass) -> models.Message:
         "generate a response based on domain and query"
-        domain = urlsplit(query_input.domain).netloc
+        urlsplit_obj = urlsplit(query_input.domain)
         query = query_input.query
         # create new conversation id
-        conv_id = self.get_new_conv_id(domain=domain)
-        q = QueryRagIndex(domain=domain)
+        conv_id = self.get_new_conv_id(urlsplit_obj=urlsplit_obj)
+        q = QueryRagIndex(urlsplit_obj=urlsplit_obj)
         response_object = q.query_index(query_text=query)
         query_db_obj = schemas.MessageCreate(
             conv_id=conv_id,
@@ -62,11 +62,12 @@ class UnitConversationManager:
             sender="system",
             receiver="human",
             sources=",\n".join(
-                [
-                    node.node_id
-                    for node_with_score in response_object.source_nodes
-                    for node in node_with_score.node.relationships.values()
-                ]
+                set(
+                    [
+                        node_with_score.node.ref_doc_id
+                        for node_with_score in response_object.source_nodes
+                    ]
+                )
             ),
         )
         response_from_db = self.store_message_in_db(message=response_db_object)
