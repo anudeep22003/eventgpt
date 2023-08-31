@@ -63,9 +63,29 @@ class SitemapBuilder:
                 db=db, domain=parent_urlsplit_obj.netloc
             )
         if domain_from_db is None:
+            logger.debug("Building from scratch")
             # if sitemap does not exist, recursively build a traverse dict
             sitemap = self.download_sitemap_if_exists(parent_urlsplit_obj)
-            if sitemap is None:
+            if sitemap is not None:
+                logger.debug(f"Sitemap for {urlsplit_obj.netloc} exists")
+                if len(sitemap) < pagerank_limit:
+                    logger.debug(
+                        f"Number of links is {len(sitemap)} building from sitemap"
+                    )
+                    pagerank = self.build_pagerank_from_sitemap(sitemap)
+                else:
+                    logger.debug(
+                        f"Num of sitemap links: {len(sitemap)}. Limit is {pagerank_limit/len(sitemap):.2%} of all sitemap links. Building a sitemap from scratch."
+                    )
+                    #! repeat of the lines immediately after. Correct later.
+                    urlpath_traverse_dict = self.build_ahref_traverse_dict(
+                        parent_urlsplit_obj=parent_urlsplit_obj,
+                        recursive_depth_cutoff=recursive_depth_cutoff,
+                        pagerank_limit=pagerank_limit,
+                    )
+                    sitemap = self.get_sitemap(urlpath_traverse_dict)
+                    pagerank = self.get_pagerank(urlpath_traverse_dict)
+            else:
                 urlpath_traverse_dict = self.build_ahref_traverse_dict(
                     parent_urlsplit_obj=parent_urlsplit_obj,
                     recursive_depth_cutoff=recursive_depth_cutoff,
@@ -73,9 +93,6 @@ class SitemapBuilder:
                 )
                 sitemap = self.get_sitemap(urlpath_traverse_dict)
                 pagerank = self.get_pagerank(urlpath_traverse_dict)
-            else:
-                pagerank = self.build_pagerank_from_sitemap(sitemap)
-            logger.debug("Building from scratch")
             logger.debug(f"sitemap: {sitemap}")
             logger.debug(f"pagerank: {pagerank}")
         else:
@@ -87,14 +104,6 @@ class SitemapBuilder:
 
         return sitemap, pagerank
 
-    #! delete if no longer needed and tests succeed
-    # def construct_url(self, url: str, path: str = "") -> str:
-    #     "prepare url for use in sitemap"
-    #     if not url.startswith("http"):
-    #         url = "https://" + url
-
-    #     return urljoin(url, path)
-
     def download_sitemap_if_exists(self, urlsplit_obj: SplitResult) -> list:
         "get all possible sitemaps from the url"
         # dont need the below anymore because you are passing SplitResult object
@@ -104,37 +113,6 @@ class SitemapBuilder:
         if not bool(all_urls):
             return None
         return all_urls
-
-    # def strip_url_to_homepage(self, url: str) -> str:
-    #     """
-    #     Strip URL to its homepage.
-
-    #     :param url: URL to strip, e.g. "http://www.example.com/page.html".
-    #     :return: Stripped homepage URL, e.g. "http://www.example.com/"
-    #     """
-    #     if not url:
-    #         raise Exception("URL is empty.")
-
-    #     try:
-    #         uri = urlparse(url)
-    #         assert uri.scheme, "Scheme must be set."
-    #         assert uri.scheme.lower() in [
-    #             "http",
-    #             "https",
-    #         ], "Scheme must be http:// or https://"
-    #         uri = (
-    #             uri.scheme,
-    #             uri.netloc,
-    #             "/",  # path
-    #             "",  # params
-    #             "",  # query
-    #             "",  # fragment
-    #         )
-    #         url = urlunparse(uri)
-    #     except Exception as ex:
-    #         raise Exception("Unable to parse URL {}: {}".format(url, ex))
-
-    #     return url
 
     def manually_check_if_sitemap_exists(self, domain: str) -> bool:
         """check if sitemap exists for a given domain
@@ -218,30 +196,43 @@ class SitemapBuilder:
         urlpath_traverse_dict = {
             urlunsplit(parent_urlsplit_obj): {"visited": False, "pagerank": 1}
         }
-        have_all_links_been_traversed = all(
-            [v["visited"] for v in urlpath_traverse_dict.values()]
-        )
 
-        num_links_traversed = len(
-            [k for k, v in urlpath_traverse_dict.items() if v["visited"]]
-        )
-        # keep entering the while loop for as long as (1) all links have not been traversed, (2) recursion depth has been exceeded, por (3)
+        def all_links_have_been_traversed() -> bool:
+            return all([v["visited"] for v in urlpath_traverse_dict.values()])
+
+        def num_links_traversed() -> int:
+            return len([k for k, v in urlpath_traverse_dict.items() if v["visited"]])
+
+        # keep entering the while loop for as long as
+        # (1) all links have not been traversed,
+        # (2) recursion depth has been exceeded, or
+        # (3) num of links traversed is less than pagerank limit
         while (
-            (not have_all_links_been_traversed)
-            or (current_recursion_depth < recursive_depth_cutoff)
-            or (num_links_traversed > pagerank_limit)
+            (not all_links_have_been_traversed())
+            and (current_recursion_depth < recursive_depth_cutoff)
+            and (num_links_traversed() < pagerank_limit)
         ):
+            logger.debug(
+                f"current_recursion_depth: {current_recursion_depth}"
+            )  # logging
+            logger.debug(f"num_links_traversed: {num_links_traversed()}")  # logging
+
             urlpaths_left_to_traverse = [
                 urlpath
                 for urlpath in urlpath_traverse_dict.keys()
                 if urlpath_traverse_dict[urlpath]["visited"] == False
             ]
+
+            logger.debug(
+                f"paths left to traverse: {urlpaths_left_to_traverse}"
+            )  # logging
+
             for urlpath in urlpaths_left_to_traverse:
                 split_urlpath = urlsplit(urlpath)
                 # you can get bot `/careers/` and `www.google.com/careers/` type urls
                 # have to handle both
                 path_list = self.get_internal_ahref_urlpaths(split_urlpath)
-                logging.debug(f"link_list: {path_list}")
+                logger.debug(f"link_list: {path_list}")  # logging
                 for path in path_list:
                     if self.check_if_path_or_url_is_internal_and_parsable(
                         path=path, parent_urlsplit_obj=parent_urlsplit_obj
@@ -252,8 +243,10 @@ class SitemapBuilder:
                             traverse_dict=urlpath_traverse_dict,
                         )
                 urlpath_traverse_dict[urlunsplit(split_urlpath)]["visited"] = True
-                logger.debug(f"traverse_dict: {urlpath_traverse_dict}")
-                logger.debug(f"paths left to traverse: {urlpaths_left_to_traverse}")
+                logger.debug(f"traverse_dict: {urlpath_traverse_dict}")  # logging
+                logger.debug(
+                    f"paths left to traverse: {urlpaths_left_to_traverse}"
+                )  # logging
             current_recursion_depth += 1
         # clean up the traverse dict so as to remove the links you are not going to parse because a limit was exceeded
         cleaned_urlpath_traverse_dict = {

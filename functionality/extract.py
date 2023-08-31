@@ -78,49 +78,9 @@ class IndexEventPage:
 
     @timer
     def get_sitemap(self, urlsplit_obj: SplitResult) -> list[str]:
-        # "get all possible sitemaps from the url"
-        # sitemap_collection = sitemap_tree_for_homepage(url)
-        # all_urls = list(set([page.url for page in sitemap_collection.all_pages()]))
-        # if not bool(all_urls):
-        #     return None
         s = SitemapBuilder()
         sitemap, _ = s(urlsplit_obj=urlsplit_obj)
         return sitemap
-
-    def construct_sitemap(self):
-        "if sitemap does not exist, construct using internal ahref links"
-        ...
-
-    def save_sitemap(self):
-        "save extracted sitemap to the db"
-        ...
-
-    def url_importance_scorer(self, url: str) -> int:
-        """Generates an importance score, between 1-3
-        - If link is internal then high importance
-        - if link is external then low importance
-        - If link is high in the pagerank then middle importance
-
-        Args:
-            url (str): The url whose imprtance needs to be checked
-
-        Returns:
-            int: score between 1-3, higher means more important
-        """
-        ...
-
-    def freshness_checker(self) -> list[str]:
-        "check if any pages have been updated, if yes append to refresh list"
-        ...
-
-    def save_html_to_db(self, html_text: str | None):
-        "take the downloaded html_text and save it to disk for later comparison"
-        "how will you save this in the database?"
-        ...
-
-    def create_index(self) -> list[dict, dict]:
-        "returns a forward and a backward index of the documents and sources"
-        ...
 
     ###################################################
     ################ SiteUrl Functions ################
