@@ -25,9 +25,12 @@ Note: This is a one time process. The app will be ready to run after this. Do no
 
 - git clone the repo
   `git clone https://github.com/anudeep22003/eventgpt.git`
+- enter working directory `cd eventgpt`
 - give execution privileges to the initialize script
   `chmod +x initialize.sh`
 - Then run `sh ./initialize.sh`
+
+## Run the app
 
 ## Run the app
 
