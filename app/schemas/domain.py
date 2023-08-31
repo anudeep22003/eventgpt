@@ -8,6 +8,7 @@ class DomainBase(BaseModel):
     pagerank: T.Optional[dict] = ""
     textrank: T.Optional[dict] = ""
     sitemap: T.Optional[str] = ""
+    time_to_index: float
 
 
 class DomainCreate(DomainBase):

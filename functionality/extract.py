@@ -25,19 +25,10 @@ def check_if_domain_exists(url: str) -> bool:
     return True
 
 
-class IndexLoad:
-    def __init__(self, url_home: str, freq_limit: int) -> None:
-        self.url_home = url_home
-        self.sitemap = self.get_sitemap(url_home)
-        self.textrank = Counter()
-        self.pagerank = Counter()
-        self.page_index = {}
-        self.freq_limit = freq_limit
-
-
 class IndexEventPage:
     def __init__(self, urlsplit_obj: SplitResult, freq_limit: int = 4) -> None:
         self.urlsplit_obj = urlsplit_obj
+        self.start_time = time.perf_counter()
         self.sitemap = self.get_sitemap(urlsplit_obj)
         self.textrank = Counter()
         self.pagerank = Counter()
@@ -235,6 +226,7 @@ class IndexEventPage:
             pagerank=pagerank,
             textrank=textrank,
             sitemap=sitemap,
+            time_to_index=round(time.perf_counter() - self.start_time, 2),
         )
         with get_db() as db:
             #! to be fully right you should maybe update the textran and pagelist if anychanges are detected
@@ -258,5 +250,4 @@ if __name__ == "__main__":
         print("-" * 50)
         site_url_text = input("Enter the url to parse: ")
         print("-" * 50)
-        print(i.parse_html(site_url_text))
         print("-" * 50, end="\n\n")

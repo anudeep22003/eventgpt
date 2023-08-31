@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Text, Integer, DateTime
+from sqlalchemy import Column, String, Text, Integer, DateTime, Float
 
 from app.models.base_class import Base
 from app.models.model_helpers import utcnow
@@ -13,6 +13,7 @@ class Message(Base):
     ts_created = Column(
         DateTime(timezone=True), server_default=utcnow(), nullable=False
     )
+    response_time = Column(Float)
 
 
 if __name__ == "__main__":

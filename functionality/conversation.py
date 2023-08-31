@@ -5,7 +5,7 @@ from app.deps import get_db
 from functionality.extract import check_if_domain_exists, IndexEventPage
 from functionality.rag_index import QueryRagIndex
 import logging
-import os
+import time
 from urllib.parse import urlsplit, SplitResult
 
 logger = logging.getLogger(__name__)
@@ -42,6 +42,9 @@ class UnitConversationManager:
         return msg_obj
 
     def __call__(self, query_input: QueryApiInputBaseClass) -> models.Message:
+        # track time for response
+        start_time = time.perf_counter()
+
         "generate a response based on domain and query"
         urlsplit_obj = urlsplit(query_input.domain)
         query = query_input.query
@@ -49,6 +52,7 @@ class UnitConversationManager:
         conv_id = self.get_new_conv_id(urlsplit_obj=urlsplit_obj)
         q = QueryRagIndex(urlsplit_obj=urlsplit_obj)
         response_object = q.query_index(query_text=query)
+
         query_db_obj = schemas.MessageCreate(
             conv_id=conv_id,
             content=query,
@@ -69,6 +73,7 @@ class UnitConversationManager:
                     ]
                 )
             ),
+            response_time=round(time.perf_counter() - start_time, 2),
         )
         response_from_db = self.store_message_in_db(message=response_db_object)
         logger.info(f"query from db: {query}")

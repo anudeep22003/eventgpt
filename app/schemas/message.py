@@ -9,6 +9,7 @@ class MessageBase(BaseModel):
     sender: str
     receiver: str
     sources: t.Optional[str] = ""
+    response_time: float = 0
 
 
 class MessageCreate(MessageBase):

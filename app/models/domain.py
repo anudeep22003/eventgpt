@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Text, Integer, DateTime, PickleType
+from sqlalchemy import Column, String, Text, Integer, DateTime, PickleType, Float
 
 from app.models.base_class import Base
 from app.models.model_helpers import utcnow
@@ -14,6 +14,7 @@ class Domain(Base):
     - sitemap: str
     - ts_created: datetime
     - ts_updated: datetime
+    - time_to_index: float
     """
 
     # generate column definitions
@@ -31,3 +32,4 @@ class Domain(Base):
         server_onupdate=utcnow(),
         nullable=False,
     )
+    time_to_index = Column(Float)
