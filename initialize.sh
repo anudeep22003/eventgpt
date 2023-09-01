@@ -8,7 +8,7 @@ wget "https://github.com/conda-forge/miniforge/releases/latest/download/Mambafor
 bash Mambaforge-$(uname)-$(uname -m).sh
 
 # set up mamba environment
-mamba env create -f env.yml
+mamba env create -f environment.yml
 
 # activate the environment
 mamba activate eventgpt
