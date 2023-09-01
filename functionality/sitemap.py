@@ -329,7 +329,20 @@ class SitemapBuilder:
         parent_urlsplit_obj: SplitResult,
     ) -> bool:
         "check if a url is internal to a given domain"
-        skip_suffixes = {".pdf", ".jpg", ".png", ".jpeg", ".gif", ".svg"}
+        skip_suffixes = {
+            ".pdf",
+            ".jpg",
+            ".png",
+            ".jpeg",
+            ".gif",
+            ".svg",
+            ".PDF",
+            ".JPG",
+            ".PNG",
+            ".JPEG",
+            ".GIF",
+            ".SVG",
+        }
         split = urlsplit(path)
         # is it full url or only path
         if split.path.endswith(tuple(skip_suffixes)):
