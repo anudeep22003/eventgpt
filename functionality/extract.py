@@ -11,6 +11,16 @@ from sqlalchemy.orm import Session
 from functools import wraps
 from functionality.sitemap import SitemapBuilder
 
+#! to handle SSL: DH_KEY_TOO_SMALL] dh key too small (_ssl.c:1002) error
+requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS += "HIGH:!DH:!aNULL"
+try:
+    requests.packages.urllib3.contrib.pyopenssl.DEFAULT_SSL_CIPHER_LIST += (
+        "HIGH:!DH:!aNULL"
+    )
+except AttributeError:
+    # no pyopenssl support used / needed / available
+    pass
+
 headers = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
 }

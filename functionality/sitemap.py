@@ -9,6 +9,17 @@ from app.deps import get_db
 import logging
 from usp.tree import sitemap_tree_for_homepage
 
+#! to handle SSL: DH_KEY_TOO_SMALL] dh key too small (_ssl.c:1002) error
+requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS += "HIGH:!DH:!aNULL"
+try:
+    requests.packages.urllib3.contrib.pyopenssl.DEFAULT_SSL_CIPHER_LIST += (
+        "HIGH:!DH:!aNULL"
+    )
+except AttributeError:
+    # no pyopenssl support used / needed / available
+    pass
+
+
 # requests headers
 headers = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
@@ -350,7 +361,11 @@ class SitemapBuilder:
     def get_internal_ahref_urlpaths(self, urlsplit_obj: SplitResult) -> list:
         "get all internal links from a given domain and path"
         html = self.download_html_save_to_db(urlsplit_obj=urlsplit_obj)
-        soup = BeautifulSoup(html, "html.parser")
+        try:
+            soup = BeautifulSoup(html, "html.parser")
+        except AssertionError:
+            logger.debug(f"AssertionError for {urlsplit_obj}")
+            return []
         list_of_links = [
             link.get("href") for link in soup.find_all("a") if link.get("href")
         ]
