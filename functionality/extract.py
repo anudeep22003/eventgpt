@@ -11,6 +11,10 @@ from sqlalchemy.orm import Session
 from functools import wraps
 from functionality.sitemap import SitemapBuilder
 
+headers = {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+}
+
 from app import models, schemas, crud, db
 from app.deps import get_db
 
@@ -126,11 +130,13 @@ class IndexEventPage:
             urlpath = "https://" + self.urlsplit_obj
         #! highly unsafe, security risk, not verifying the ssl certificate with verify flag
         try:
-            res = requests.get(urlpath, verify=False)
+            res = requests.get(urlpath, headers=headers)
+        except requests.exceptions.SSLError:
+            res = requests.get(urlpath, verify=False, headers=headers)
         except requests.exceptions.MissingSchema:
-            urlpath = "https://" + self.urlsplit_obj + urlpath
+            urlpath = "https://" + self.urlsplit_obj.netloc + urlpath
             try:
-                res = requests.get(urlpath, verify=False)
+                res = requests.get(urlpath, verify=False, headers=headers)
             except requests.exceptions.ConnectionError:
                 return """
                     <!DOCTYPE html>

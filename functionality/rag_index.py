@@ -1,4 +1,4 @@
-from urllib.parse import SplitResult
+from urllib.parse import SplitResult, urlunsplit
 import os
 
 from llama_index import Document, VectorStoreIndex, get_response_synthesizer
@@ -151,6 +151,7 @@ class BuildRagIndex:
 
     def build_rag_index(self):
         "if siteurls are none, then you will have to first index the event page"
+        logger.debug(f"---> building rag index for {urlunsplit(self.urlsplit_obj)}")
         if not (self.site_url_objs):
             logger.debug(
                 "no siteurls found, so building the index from downloading the event page"

@@ -9,6 +9,11 @@ from app.deps import get_db
 import logging
 from usp.tree import sitemap_tree_for_homepage
 
+# requests headers
+headers = {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+}
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 fh = logging.FileHandler(f"logs/{__name__}.log", mode="a")
@@ -80,7 +85,7 @@ class SitemapBuilder:
                     #! repeat of the lines immediately after. Correct later.
                     urlpath_traverse_dict = self.build_ahref_traverse_dict(
                         parent_urlsplit_obj=parent_urlsplit_obj,
-                        recursive_depth_cutoff=recursive_depth_cutoff,
+                        parse_depth_cutoff=recursive_depth_cutoff,
                         pagerank_limit=pagerank_limit,
                     )
                     sitemap = self.get_sitemap(urlpath_traverse_dict)
@@ -88,7 +93,7 @@ class SitemapBuilder:
             else:
                 urlpath_traverse_dict = self.build_ahref_traverse_dict(
                     parent_urlsplit_obj=parent_urlsplit_obj,
-                    recursive_depth_cutoff=recursive_depth_cutoff,
+                    parse_depth_cutoff=recursive_depth_cutoff,
                     pagerank_limit=pagerank_limit,
                 )
                 sitemap = self.get_sitemap(urlpath_traverse_dict)
@@ -136,7 +141,9 @@ class SitemapBuilder:
 
         # first check if robots.txt exists
         res = requests.get(
-            self.construct_url(domain, "robots.txt"), allow_redirects=True
+            self.construct_url(domain, "robots.txt"),
+            allow_redirects=True,
+            headers=headers,
         )
         if res.status_code == 200:
             robots_txt = res.text
@@ -186,13 +193,13 @@ class SitemapBuilder:
     def build_ahref_traverse_dict(
         self,
         parent_urlsplit_obj: SplitResult,
-        recursive_depth_cutoff: int,
+        parse_depth_cutoff: int,
         pagerank_limit: int,
     ) -> dict:
         "generate sitemap for a given domain"
         # use crawler to generate sitemap
         # save the full link of the path, not just the path
-        current_recursion_depth = 0
+        current_parse_depth = 0
         urlpath_traverse_dict = {
             urlunsplit(parent_urlsplit_obj): {"visited": False, "pagerank": 1}
         }
@@ -209,12 +216,10 @@ class SitemapBuilder:
         # (3) num of links traversed is less than pagerank limit
         while (
             (not all_links_have_been_traversed())
-            and (current_recursion_depth < recursive_depth_cutoff)
+            and (current_parse_depth < parse_depth_cutoff)
             and (num_links_traversed() < pagerank_limit)
         ):
-            logger.debug(
-                f"current_recursion_depth: {current_recursion_depth}"
-            )  # logging
+            logger.debug(f"current_parse_depth: {current_parse_depth}")  # logging
             logger.debug(f"num_links_traversed: {num_links_traversed()}")  # logging
 
             urlpaths_left_to_traverse = [
@@ -222,9 +227,12 @@ class SitemapBuilder:
                 for urlpath in urlpath_traverse_dict.keys()
                 if urlpath_traverse_dict[urlpath]["visited"] == False
             ]
+            urlpaths_left_to_traverse.sort(
+                key=lambda x: urlpath_traverse_dict[x]["pagerank"], reverse=True
+            )
 
             logger.debug(
-                f"paths left to traverse: {urlpaths_left_to_traverse}"
+                f"num of paths left to traverse: {len(urlpaths_left_to_traverse)}"
             )  # logging
 
             for urlpath in urlpaths_left_to_traverse:
@@ -232,7 +240,11 @@ class SitemapBuilder:
                 # you can get bot `/careers/` and `www.google.com/careers/` type urls
                 # have to handle both
                 path_list = self.get_internal_ahref_urlpaths(split_urlpath)
-                logger.debug(f"link_list: {path_list}")  # logging
+                # logger.debug(f"link_list: {path_list}")  # logging
+
+                # debugging info --> how much does each link add to the traverse dict
+                start_length_of_traverse_dict = len(urlpath_traverse_dict)
+
                 for path in path_list:
                     if self.check_if_path_or_url_is_internal_and_parsable(
                         path=path, parent_urlsplit_obj=parent_urlsplit_obj
@@ -243,11 +255,24 @@ class SitemapBuilder:
                             traverse_dict=urlpath_traverse_dict,
                         )
                 urlpath_traverse_dict[urlunsplit(split_urlpath)]["visited"] = True
-                logger.debug(f"traverse_dict: {urlpath_traverse_dict}")  # logging
-                logger.debug(
-                    f"paths left to traverse: {urlpaths_left_to_traverse}"
-                )  # logging
-            current_recursion_depth += 1
+                traverse_dict_size_increase = (
+                    len(urlpath_traverse_dict) - start_length_of_traverse_dict
+                )
+                if traverse_dict_size_increase > 0:
+                    logger.debug(
+                        f"traverse dict size increased by {traverse_dict_size_increase} links"
+                    )
+                    logger.debug(
+                        f"Percent increase = {(traverse_dict_size_increase)/start_length_of_traverse_dict:.2%}"
+                    )
+                if num_links_traversed() > pagerank_limit:
+                    logger.debug(
+                        f"Number of links traversed = {num_links_traversed()}, which is more than {pagerank_limit}. Hence exitting..."
+                    )
+                    break
+            current_parse_depth += 1
+        # logger.debug(f"traverse_dict: {urlpath_traverse_dict}")  # logging
+        # logger.debug(f"paths left to traverse: {urlpaths_left_to_traverse}")  # logging
         # clean up the traverse dict so as to remove the links you are not going to parse because a limit was exceeded
         cleaned_urlpath_traverse_dict = {
             k: v for k, v in urlpath_traverse_dict.items() if v["visited"]
@@ -258,6 +283,7 @@ class SitemapBuilder:
         logger.debug(
             f"Total number of urls on traverse path was {total_urls_in_traverse_path} and number discarded for exceeding limits was {total_urls_in_traverse_path - num_urls_within_limit}"
         )
+        logger.debug(f"final traverse_dict: {cleaned_urlpath_traverse_dict}")  # logging
 
         return cleaned_urlpath_traverse_dict
 
@@ -305,7 +331,14 @@ class SitemapBuilder:
             siteurl = crud.siteurl.get_by_url(db=db, url=constructed_url)
             if siteurl is None:
                 #! doing insecure thing, setting verify=false to allow websites that fail ssl certification verification
-                html = requests.get(constructed_url, verify=False).text
+                try:
+                    html = requests.get(
+                        constructed_url, verify=True, headers=headers
+                    ).text
+                except requests.exceptions.SSLError:
+                    html = requests.get(
+                        constructed_url, headers=headers, verify=False
+                    ).text
                 obj_in = schemas.SiteUrlCreate(
                     domain=urlsplit_obj.netloc, url=constructed_url, html=html
                 )
@@ -343,9 +376,13 @@ class SitemapBuilder:
             ".GIF",
             ".SVG",
         }
+
+        skip_prefixes = {"#", "javascript:", "?"}
         split = urlsplit(path)
         # is it full url or only path
         if split.path.endswith(tuple(skip_suffixes)):
+            return False
+        if split.path.startswith(tuple(skip_prefixes)):
             return False
         if (
             not (split.netloc)
