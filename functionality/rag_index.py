@@ -1,5 +1,6 @@
 from urllib.parse import SplitResult, urlunsplit
 import os
+import magic
 
 from llama_index import Document, VectorStoreIndex, get_response_synthesizer
 from llama_index import StorageContext, load_index_from_storage
@@ -149,6 +150,13 @@ class BuildRagIndex:
             # and you dont need to check for None
         ]
 
+    def document_is_binary(self, doc: str) -> bool:
+        "check if the document is binary"
+        m = magic.open(magic.MAGIC_MIME_ENCODING)
+        m.load()
+        encoding = m.buffer(doc)  # "utf-8" "us-ascii" etc
+        return True if encoding == "binary" else False
+
     def build_rag_index(self):
         "if siteurls are none, then you will have to first index the event page"
         logger.debug(f"---> building rag index for {urlunsplit(self.urlsplit_obj)}")
@@ -175,8 +183,12 @@ class BuildRagIndex:
         "construct doc, nodes and finally index for querying"
         parser = SimpleNodeParser()
 
-        documents = [Document(doc_id=s.url, text=s.text) for s in self.site_url_objs]
-        nodes = parser.get_nodes_from_documents(documents)
+        documents = [
+            Document(doc_id=s.url, text=s.text)
+            for s in self.site_url_objs
+            if self.document_is_binary(s.text) is False
+        ]
+        nodes = parser.get_nodes_from_documents(documents, show_progress=True)
         rag_index = VectorStoreIndex(nodes)
         self.save_rag_index(rag_index)
         return rag_index
