@@ -26,9 +26,9 @@ headers = {
 }
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 fh = logging.FileHandler(f"logs/{__name__}.log", mode="a")
-fh.setLevel(logging.DEBUG)
+fh.setLevel(logging.INFO)
 logger.addHandler(fh)
 
 
@@ -64,7 +64,7 @@ def is_url_media_type(urlsplit_obj: SplitResult) -> bool:
         ".SVG",
     }
     if urlsplit_obj.path.endswith(tuple(skip_suffixes)):
-        logger.debug(f"skipping because url is media type {urlunsplit(urlsplit_obj)}")
+        # logger.debug(f"skipping because url is media type {urlunsplit(urlsplit_obj)}")
         return True
     return False
 
@@ -101,18 +101,18 @@ class SitemapBuilder:
                 db=db, domain=parent_urlsplit_obj.netloc
             )
         if domain_from_db is None:
-            logger.debug("Building from scratch")
+            logger.info("Building from scratch")
             # if sitemap does not exist, recursively build a traverse dict
             sitemap = self.download_sitemap_if_exists(parent_urlsplit_obj)
             if sitemap is not None:
-                logger.debug(f"Sitemap for {urlsplit_obj.netloc} exists")
+                logger.info(f"Sitemap for {urlsplit_obj.netloc} exists")
                 if len(sitemap) < pagerank_limit:
-                    logger.debug(
+                    logger.info(
                         f"Number of links is {len(sitemap)} building from sitemap"
                     )
                     pagerank = self.build_pagerank_from_sitemap(sitemap)
                 else:
-                    logger.debug(
+                    logger.info(
                         f"Num of sitemap links: {len(sitemap)}. Limit is {pagerank_limit/len(sitemap):.2%} of all sitemap links. Building a sitemap from scratch."
                     )
                     #! repeat of the lines immediately after. Correct later.
@@ -136,7 +136,7 @@ class SitemapBuilder:
         else:
             sitemap = domain_from_db.sitemap.split(" , ")
             pagerank = domain_from_db.pagerank
-            logger.debug("Pulling from database")
+            logger.info("Pulling from database")
             logger.debug(f"sitemap: {sitemap}")
             logger.debug(f"pagerank: {pagerank}")
 
@@ -252,8 +252,8 @@ class SitemapBuilder:
             and (current_parse_depth < parse_depth_cutoff)
             and (num_links_traversed() < pagerank_limit)
         ):
-            logger.debug(f"current_parse_depth: {current_parse_depth}")  # logging
-            logger.debug(f"num_links_traversed: {num_links_traversed()}")  # logging
+            logger.info(f"current_parse_depth: {current_parse_depth}")  # logging
+            logger.info(f"num_links_traversed: {num_links_traversed()}")  # logging
 
             urlpaths_left_to_traverse = [
                 urlpath
@@ -264,7 +264,7 @@ class SitemapBuilder:
                 key=lambda x: urlpath_traverse_dict[x]["pagerank"], reverse=True
             )
 
-            logger.debug(
+            logger.info(
                 f"num of paths left to traverse: {len(urlpaths_left_to_traverse)}"
             )  # logging
 
@@ -299,7 +299,7 @@ class SitemapBuilder:
                         f"Percent increase = {(traverse_dict_size_increase)/start_length_of_traverse_dict:.2%}"
                     )
                 if num_links_traversed() > pagerank_limit:
-                    logger.debug(
+                    logger.info(
                         f"Number of links traversed = {num_links_traversed()}, which is more than {pagerank_limit}. Hence exitting..."
                     )
                     break
@@ -313,7 +313,7 @@ class SitemapBuilder:
 
         total_urls_in_traverse_path = len(urlpath_traverse_dict.items())
         num_urls_within_limit = len(cleaned_urlpath_traverse_dict.items())
-        logger.debug(
+        logger.info(
             f"Total number of urls on traverse path was {total_urls_in_traverse_path} and number discarded for exceeding limits was {total_urls_in_traverse_path - num_urls_within_limit}"
         )
         logger.debug(f"final traverse_dict: {cleaned_urlpath_traverse_dict}")  # logging
@@ -335,7 +335,7 @@ class SitemapBuilder:
     ) -> dict:
         "generate pagerank from sitemap"
         pagerank = Counter()
-        logger.debug(f"Sitemap length: {len(sitemap)}")
+        logger.info(f"Sitemap length: {len(sitemap)}")
         for url in sitemap:
             urlsplit_obj = urlsplit(url)
             if is_url_media_type(urlsplit_obj):
@@ -353,7 +353,7 @@ class SitemapBuilder:
             pagerank.update(urlpaths_to_add_to_pagerank)
             highest_pagerank = max(pagerank.values())
             if highest_pagerank > pagerank_limit:
-                logger.debug(
+                logger.info(
                     f"num of links skipped due to pagerank limit: {len(sitemap) - len(pagerank)}"
                 )
                 break
@@ -374,6 +374,9 @@ class SitemapBuilder:
                     html = requests.get(
                         constructed_url, headers=headers, verify=False
                     ).text
+                except requests.exceptions.MissingSchema:
+                    logger.info(f"MissingSchema for {constructed_url}")
+                    return "None"
                 obj_in = schemas.SiteUrlCreate(
                     domain=urlsplit_obj.netloc, url=constructed_url, html=html
                 )
@@ -388,7 +391,7 @@ class SitemapBuilder:
         try:
             soup = BeautifulSoup(html, "html.parser")
         except AssertionError:
-            logger.debug(f"AssertionError for {urlsplit_obj}")
+            logger.info(f"AssertionError for {urlsplit_obj}")
             return []
         list_of_links = [
             link.get("href") for link in soup.find_all("a") if link.get("href")
