@@ -1,19 +1,48 @@
-import requests
-import json
-import urllib3
 from functionality.rag_index import BuildRagIndex, QueryRagIndex
 from urllib.parse import urlsplit, SplitResult
+import pandas as pd
 
-# requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS = "ALL:@SECLEVEL=1"
+import signal
 
-f = open("data/sites_to_index.txt", "r")
-domains = f.readlines()
-domains = [x.strip("\n") for x in domains]
-domains.insert(0, "https://www.autoevexpo.com/")
 
-for domain in domains:
+class timeout:
+    def __init__(self, seconds=1, error_message="Timeout"):
+        self.seconds = seconds
+        self.error_message = error_message
+
+    def handle_timeout(self, signum, frame):
+        raise TimeoutError(self.error_message)
+
+    def __enter__(self):
+        signal.signal(signal.SIGALRM, self.handle_timeout)
+        signal.alarm(self.seconds)
+
+    def __exit__(self, type, value, traceback):
+        signal.alarm(0)
+
+
+# open the csv file that contains the domain to index
+df = pd.read_csv("data/events_to_index.csv")
+
+
+def get_domains() -> list[str]:
+    return df[df["done"].isna()]["website"].tolist()
+
+
+domains = get_domains()
+# for domain in get_domains():
+for domain in domains[:2]:
     urlsplit_obj = urlsplit(domain)
-    b = QueryRagIndex(urlsplit_obj=urlsplit_obj)
+    with timeout(seconds=60):
+        try:
+            b = QueryRagIndex(urlsplit_obj=urlsplit_obj)
+        except TimeoutError:
+            print(f"Timeout error for {domain}")
+            df.loc[df["website"] == domain, "done"] = "timeout"
+            df.to_csv("data/events_to_index.csv", index=False)
+            continue
+    df.loc[df["website"] == domain, "done"] = "indexed, ready to use"
+    df.to_csv("data/events_to_index.csv", index=False)
 
 # url = "http://35.200.180.141:8001/converse-website/"
 
