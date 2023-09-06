@@ -10,6 +10,14 @@ from usp.tree import sitemap_tree_for_homepage
 from sqlalchemy.orm import Session
 from functools import wraps
 from functionality.sitemap import SitemapBuilder, is_url_media_type
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+fh = logging.FileHandler(f"logs/{__name__}.log", mode="a")
+fh.setLevel(logging.DEBUG)
+logger.addHandler(fh)
+
 
 #! to handle SSL: DH_KEY_TOO_SMALL] dh key too small (_ssl.c:1002) error
 requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS += "HIGH:!DH:!aNULL"
@@ -153,6 +161,9 @@ class IndexEventPage:
             res = requests.get(urlpath, headers=headers)
         except requests.exceptions.SSLError:
             res = requests.get(urlpath, verify=False, headers=headers)
+        except requests.exceptions.InvalidSchema:
+            logger.info(f"Invalid schema for {urlpath}")
+            return "None"
         except requests.exceptions.MissingSchema:
             urlpath = "https://" + self.urlsplit_obj.netloc + urlpath
             try:
