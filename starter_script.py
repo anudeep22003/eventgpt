@@ -29,11 +29,9 @@ def get_domains() -> list[str]:
     return df[df["done"].isna()]["website"].tolist()
 
 
-domains = get_domains()
-# for domain in get_domains():
-for domain in domains[:2]:
+for domain in get_domains():
     urlsplit_obj = urlsplit(domain)
-    with timeout(seconds=60):
+    with timeout(seconds=1200):
         try:
             b = QueryRagIndex(urlsplit_obj=urlsplit_obj)
         except TimeoutError:
