@@ -1,7 +1,7 @@
 import requests
 import json
 import re
-from urllib.parse import urlparse, SplitResult
+from urllib.parse import urlparse, SplitResult, urlsplit
 import openai
 import time
 from bs4 import BeautifulSoup
@@ -138,7 +138,8 @@ class IndexEventPage:
         "download the html of the page"
         if urlpath == "/":
             urlpath = "https://" + self.urlsplit_obj
-        if is_url_media_type(urlpath):
+        urlsplit_obj = urlsplit(urlpath)
+        if is_url_media_type(urlsplit_obj):
             return """
                 <!DOCTYPE html>
                 <html lang="en">
