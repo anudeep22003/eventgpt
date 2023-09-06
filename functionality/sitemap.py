@@ -377,6 +377,9 @@ class SitemapBuilder:
                 except requests.exceptions.MissingSchema:
                     logger.info(f"MissingSchema for {constructed_url}")
                     return "None"
+                except requests.exceptions.InvalidSchema:
+                    logger.info(f"InvalidSchema for {constructed_url}")
+                    return "None"
                 obj_in = schemas.SiteUrlCreate(
                     domain=urlsplit_obj.netloc, url=constructed_url, html=html
                 )
