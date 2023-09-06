@@ -47,6 +47,28 @@ _UNPUBLISHED_SITEMAP_PATHS = {
 """Paths which are not exposed in robots.txt but might still contain a sitemap."""
 
 
+def is_url_media_type(urlsplit_obj: SplitResult) -> bool:
+    "check if a url is a media type"
+    skip_suffixes = {
+        ".pdf",
+        ".jpg",
+        ".png",
+        ".jpeg",
+        ".gif",
+        ".svg",
+        ".PDF",
+        ".JPG",
+        ".PNG",
+        ".JPEG",
+        ".GIF",
+        ".SVG",
+    }
+    if urlsplit_obj.path.endswith(tuple(skip_suffixes)):
+        logger.debug(f"skipping because url is media type {urlunsplit(urlsplit_obj)}")
+        return True
+    return False
+
+
 class SitemapBuilder:
 
     """Master class to build a sitemap for a given domain.
@@ -316,7 +338,7 @@ class SitemapBuilder:
         logger.debug(f"Sitemap length: {len(sitemap)}")
         for url in sitemap:
             urlsplit_obj = urlsplit(url)
-            if self.is_url_media_type(urlsplit_obj):
+            if is_url_media_type(urlsplit_obj):
                 continue
             urlpath_list = self.get_internal_ahref_urlpaths(
                 urlsplit_obj=urlsplit_obj,
@@ -372,29 +394,6 @@ class SitemapBuilder:
             link.get("href") for link in soup.find_all("a") if link.get("href")
         ]
         return list_of_links
-
-    def is_url_media_type(self, urlsplit_obj: SplitResult) -> bool:
-        "check if a url is a media type"
-        skip_suffixes = {
-            ".pdf",
-            ".jpg",
-            ".png",
-            ".jpeg",
-            ".gif",
-            ".svg",
-            ".PDF",
-            ".JPG",
-            ".PNG",
-            ".JPEG",
-            ".GIF",
-            ".SVG",
-        }
-        if urlsplit_obj.path.endswith(tuple(skip_suffixes)):
-            logger.debug(
-                f"skipping because sitemap url is media type {urlunsplit(urlsplit_obj)}"
-            )
-            return True
-        return False
 
     def check_if_path_or_url_is_internal_and_parsable(
         self,

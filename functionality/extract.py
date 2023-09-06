@@ -9,7 +9,7 @@ from collections import Counter
 from usp.tree import sitemap_tree_for_homepage
 from sqlalchemy.orm import Session
 from functools import wraps
-from functionality.sitemap import SitemapBuilder
+from functionality.sitemap import SitemapBuilder, is_url_media_type
 
 #! to handle SSL: DH_KEY_TOO_SMALL] dh key too small (_ssl.c:1002) error
 requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS += "HIGH:!DH:!aNULL"
@@ -138,6 +138,15 @@ class IndexEventPage:
         "download the html of the page"
         if urlpath == "/":
             urlpath = "https://" + self.urlsplit_obj
+        if is_url_media_type(urlpath):
+            return """
+                <!DOCTYPE html>
+                <html lang="en">
+                <body>
+                    None
+                </body>
+                </html>
+            """
         #! highly unsafe, security risk, not verifying the ssl certificate with verify flag
         try:
             res = requests.get(urlpath, headers=headers)
