@@ -316,6 +316,8 @@ class SitemapBuilder:
         logger.debug(f"Sitemap length: {len(sitemap)}")
         for url in sitemap:
             urlsplit_obj = urlsplit(url)
+            if self.is_url_media_type(urlsplit_obj):
+                continue
             urlpath_list = self.get_internal_ahref_urlpaths(
                 urlsplit_obj=urlsplit_obj,
             )
@@ -371,6 +373,29 @@ class SitemapBuilder:
         ]
         return list_of_links
 
+    def is_url_media_type(self, urlsplit_obj: SplitResult) -> bool:
+        "check if a url is a media type"
+        skip_suffixes = {
+            ".pdf",
+            ".jpg",
+            ".png",
+            ".jpeg",
+            ".gif",
+            ".svg",
+            ".PDF",
+            ".JPG",
+            ".PNG",
+            ".JPEG",
+            ".GIF",
+            ".SVG",
+        }
+        if urlsplit_obj.path.endswith(tuple(skip_suffixes)):
+            logger.debug(
+                f"skipping because sitemap url is media type {urlunsplit(urlsplit_obj)}"
+            )
+            return True
+        return False
+
     def check_if_path_or_url_is_internal_and_parsable(
         self,
         path: str,
@@ -396,8 +421,14 @@ class SitemapBuilder:
         split = urlsplit(path)
         # is it full url or only path
         if split.path.endswith(tuple(skip_suffixes)):
+            logger.debug(
+                f"skipping because ends with a suffix {split.path}, {urlunsplit(split)}"
+            )
             return False
         if split.path.startswith(tuple(skip_prefixes)):
+            logger.debug(
+                f"skipping because starts with # {split.path}, {urlunsplit(split)}"
+            )
             return False
         if (
             not (split.netloc)
@@ -408,11 +439,16 @@ class SitemapBuilder:
             return True
         if split.netloc == parent_urlsplit_obj.netloc:
             return True
+        logger.debug(
+            f"skipping for outside reason {split.path}, {urlunsplit(split)}, {split}, {parent_urlsplit_obj}"
+        )
         return False
 
 
 if __name__ == "__main__":
+    split_url = urlsplit("http://www.chinamumbaiexpo.com/")
     i = SitemapBuilder()
+    i(split_url)
     print(
         i.strip_url_to_homepage(
             "https://www.google.com/search?q=mac+right+key+is+auto+pressed&oq=mac+right+key+is+auto+pressed&aqs=chrome..69i57.5952j0j1&sourceid=chrome&ie=UTF-8"
