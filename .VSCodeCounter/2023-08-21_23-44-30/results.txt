@@ -1,0 +1,87 @@
+Date : 2023-08-21 23:44:30
+Directory : /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt
+Total : 47 files,  1431 codes, 281 comments, 395 blanks, all 2107 lines
+
+Languages
++--------------+------------+------------+------------+------------+------------+
+| language     | files      | code       | comment    | blank      | total      |
++--------------+------------+------------+------------+------------+------------+
+| Python       |         41 |      1,262 |        274 |        348 |      1,884 |
+| Ini          |          1 |         87 |          0 |         24 |        111 |
+| Markdown     |          1 |         39 |          0 |         15 |         54 |
+| YAML         |          1 |         34 |          1 |          3 |         38 |
+| Shell Script |          2 |          7 |          6 |          5 |         18 |
+| JSON         |          1 |          2 |          0 |          0 |          2 |
++--------------+------------+------------+------------+------------+------------+
+
+Directories
++-----------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                                        | files      | code       | comment    | blank      | total      |
++-----------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                           |         47 |      1,431 |        281 |        395 |      2,107 |
+| . (Files)                                                                                                                   |         11 |        284 |         15 |         88 |        387 |
+| alembic                                                                                                                     |          3 |         98 |         53 |         31 |        182 |
+| alembic (Files)                                                                                                             |          1 |         34 |         29 |         17 |         80 |
+| alembic/versions                                                                                                            |          2 |         64 |         24 |         14 |        102 |
+| app                                                                                                                         |         26 |        284 |         40 |        133 |        457 |
+| app (Files)                                                                                                                 |          3 |         19 |          1 |          7 |         27 |
+| app/crud                                                                                                                    |          6 |         84 |         17 |         38 |        139 |
+| app/db                                                                                                                      |          4 |         16 |          0 |          9 |         25 |
+| app/models                                                                                                                  |          7 |         87 |         22 |         35 |        144 |
+| app/schemas                                                                                                                 |          6 |         78 |          0 |         44 |        122 |
+| functionality                                                                                                               |          7 |        765 |        173 |        143 |      1,081 |
++-----------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-----------------------------------------------------------------------------------------------------------------------------+--------------+------------+------------+------------+------------+
+| filename                                                                                                                    | language     | code       | comment    | blank      | total      |
++-----------------------------------------------------------------------------------------------------------------------------+--------------+------------+------------+------------+------------+
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/README.md                                                        | Markdown     |         39 |          0 |         15 |         54 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/alembic.ini                                                      | Ini          |         87 |          0 |         24 |        111 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/alembic/env.py                                                   | Python       |         34 |         29 |         17 |         80 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/alembic/versions/635c37ce64dc_added_domain_and_siteurl_tables.py | Python       |         49 |         12 |          7 |         68 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/alembic/versions/f00bf1e69285_add_conversation_table.py          | Python       |         15 |         12 |          7 |         34 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/app/__init__.py                                                  | Python       |          0 |          0 |          1 |          1 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/app/crud/__init__.py                                             | Python       |          4 |          0 |          1 |          5 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/app/crud/conversation.py                                         | Python       |          7 |          0 |          6 |         13 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/app/crud/crud_base.py                                            | Python       |         28 |         14 |         10 |         52 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/app/crud/domain.py                                               | Python       |          8 |          0 |          6 |         14 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/app/crud/message.py                                              | Python       |         16 |          3 |          7 |         26 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/app/crud/siteurl.py                                              | Python       |         21 |          0 |          8 |         29 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/app/db/__init__.py                                               | Python       |          0 |          0 |          1 |          1 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/app/db/base.py                                                   | Python       |          0 |          0 |          1 |          1 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/app/db/init_db.py                                                | Python       |          9 |          0 |          4 |         13 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/app/db/session.py                                                | Python       |          7 |          0 |          3 |         10 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/app/default_data.py                                              | Python       |          7 |          0 |          0 |          7 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/app/deps.py                                                      | Python       |         12 |          1 |          6 |         19 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/app/models/__init__.py                                           | Python       |          4 |          0 |          1 |          5 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/app/models/base_class.py                                         | Python       |         15 |          0 |          9 |         24 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/app/models/conversation.py                                       | Python       |          9 |          0 |          4 |         13 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/app/models/domain.py                                             | Python       |         18 |         11 |          5 |         34 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/app/models/message.py                                            | Python       |         14 |          0 |          6 |         20 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/app/models/model_helpers.py                                      | Python       |          9 |          0 |          5 |         14 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/app/models/siteurl.py                                            | Python       |         18 |         11 |          5 |         34 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/app/schemas/__init__.py                                          | Python       |          5 |          0 |          1 |          6 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/app/schemas/conversation.py                                      | Python       |         13 |          0 |          8 |         21 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/app/schemas/custom_classes.py                                    | Python       |          4 |          0 |          3 |          7 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/app/schemas/domain.py                                            | Python       |         20 |          0 |         12 |         32 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/app/schemas/message.py                                           | Python       |         16 |          0 |          8 |         24 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/app/schemas/siteurl.py                                           | Python       |         20 |          0 |         12 |         32 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/backend_pre_start.py                                             | Python       |         27 |          1 |         11 |         39 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/constants.py                                                     | Python       |          7 |          1 |          4 |         12 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/env.yml                                                          | YAML         |         34 |          1 |          3 |         38 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/functionality/__init__.py                                        | Python       |          0 |          1 |          1 |          2 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/functionality/ai_models.py                                       | Python       |         18 |          3 |          4 |         25 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/functionality/chat.py                                            | Python       |         68 |         17 |         22 |        107 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/functionality/conversation.py                                    | Python       |         61 |          9 |          9 |         79 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/functionality/extract.py                                         | Python       |        198 |         64 |         41 |        303 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/functionality/rag_index.py                                       | Python       |        157 |         15 |         30 |        202 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/functionality/sitemap.py                                         | Python       |        263 |         64 |         36 |        363 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/initial_data.py                                                  | Python       |         14 |          0 |          9 |         23 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/main.py                                                          | Python       |         41 |          6 |         15 |         62 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/pre_start.sh                                                     | Shell Script |          3 |          4 |          3 |         10 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/run.sh                                                           | Shell Script |          4 |          2 |          2 |          8 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/scratch.json                                                     | JSON         |          2 |          0 |          0 |          2 |
+| /Users/anudeepyegireddi/@anudeep/Projects/10Times/eventgpt/scratch.py                                                       | Python       |         26 |          0 |          2 |         28 |
+| Total                                                                                                                       |              |      1,431 |        281 |        395 |      2,107 |
++-----------------------------------------------------------------------------------------------------------------------------+--------------+------------+------------+------------+------------+

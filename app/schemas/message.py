@@ -21,4 +21,4 @@ class Message(MessageBase):
     ts_created: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True

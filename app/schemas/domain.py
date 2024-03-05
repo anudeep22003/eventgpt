@@ -29,4 +29,4 @@ class Domain(DomainBase):
     ts_updated: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True

@@ -1,7 +1,13 @@
 from urllib.parse import SplitResult, urlunsplit
 import os
 
-from llama_index import Document, VectorStoreIndex, get_response_synthesizer
+from llama_index import (
+    Document,
+    VectorStoreIndex,
+    get_response_synthesizer,
+    SummaryIndex,
+)
+from llama_index.text_splitter import get_default_text_splitter
 from llama_index import StorageContext, load_index_from_storage
 from llama_index import Prompt
 
@@ -14,7 +20,8 @@ from llama_index.indices.postprocessor import SimilarityPostprocessor
 from app import models, schemas, crud, db
 from app.deps import get_db
 from functionality.extract import check_if_domain_exists, IndexEventPage
-from constants import SIMILARITY_TOP_K
+import constants
+from prompts import text_qa_template
 
 import logging
 
@@ -72,27 +79,62 @@ class QueryRagIndex:
             logger.debug(f"Built index at {index_dir}")
             return rag_index
         else:
+            # capturing for completeness, but this path should not be reached
             logger.debug("Soemthing weird happened - #12334")
             raise Exception("Something weird happened - #12334")
 
     def query_index(self, query_text: str):
         "query the index for a given query"
+        max_nodes = constants.MAX_NUM_NODES_TO_SYNTHESIZE_RESPONSE
+        num_lines_in_node_threshold = constants.MIN_NUM_LINES_THRESHOLD
+
         retriever = VectorIndexRetriever(
-            index=self.rag_index, similarity_top_k=SIMILARITY_TOP_K
+            index=self.rag_index, similarity_top_k=constants.SIMILARITY_TOP_K_LVL_1
         )
 
-        # configure response synthesizer
-        #! text qa template goes here
-        response_synthesizer = get_response_synthesizer()
+        # ------- level 1 retieval
+        retrieved_nodes = retriever.retrieve(query_text)
+        # ------- level 2 retrieval (remove nodes with little text)
+        line_threshold_nodes = [
+            node_with_score
+            for node_with_score in retrieved_nodes
+            if node_with_score.text
+        ]
+        level2_retrieved_nodes = [
+            node_with_score
+            for node_with_score in retrieved_nodes
+            if node_with_score.score > 0.75
+        ]
+        if len(level2_retrieved_nodes) < max_nodes:
+            retrieved_nodes = retrieved_nodes[:1]
+        # -------- level 3 retreival
+        # if number of nodes more than max_nodes defined in constants file just use the top
+        #! if number of nodes less than max, then use at least 1
+        #! if score of retrieved nodes is less than 0.75, then use at least 1
+
+        if len(retrieved_nodes) > max_nodes:
+            retrieved_nodes = retrieved_nodes[:max_nodes]
+
+        # # configure response synthesizer
+        response_synthesizer = get_response_synthesizer(
+            response_mode="compact_accumulate"
+        )
+
+        # construct index to query using retreived nodes
+        query_index = SummaryIndex(
+            nodes=[node_with_score.node for node_with_score in retrieved_nodes],
+        )
 
         # assemble query engine
-        query_engine = RetrieverQueryEngine(
-            retriever=retriever,
+        query_engine = query_index.as_query_engine(
             response_synthesizer=response_synthesizer,
-            node_postprocessors=[SimilarityPostprocessor(similarity_cutoff=0.7)],
-            # text_qa_template=self.get_prompt(),
+            text_qa_template=text_qa_template,
+            # streaming=True
         )
-        response = query_engine.query(query_text)
+
+        response = query_engine.query(
+            query_text,
+        )
         return response
 
 
@@ -173,7 +215,7 @@ class BuildRagIndex:
                 IndexEventPage(urlsplit_obj=self.urlsplit_obj)
                 self.site_url_objs = self.get_domain_siteurl_db_objs()
         "construct doc, nodes and finally index for querying"
-        parser = SimpleNodeParser()
+        parser = SimpleNodeParser(text_splitter=get_default_text_splitter())
 
         documents = [Document(doc_id=s.url, text=s.text) for s in self.site_url_objs]
         nodes = parser.get_nodes_from_documents(documents, show_progress=True)

@@ -27,7 +27,7 @@ def root(request: Request, db: Session = Depends(deps.get_db)) -> dict:
     return {"HWE": "I seem to be working correctly"}
 
 
-@api_router.get("/converse-website/", status_code=200, response_model=schemas.Message)
+@api_router.get("/converse-website", status_code=200, response_model=schemas.Message)
 async def converse_with_website(
     query_input: schemas.QueryApiInputBaseClass, db: Session = Depends(deps.get_db)
 ) -> schemas.Message:
@@ -35,14 +35,15 @@ async def converse_with_website(
     return conv_manager(query_input=query_input)
 
 
-@api_router.get("/converse/", status_code=200, response_model=schemas.Message)
+@api_router.get("/converse", status_code=200, response_model=schemas.Message)
 async def converse(
     input_msg: schemas.MessageCreate, db: Session = Depends(deps.get_db)
 ) -> schemas.Message:
     # add message to database
-    msg_human = crud.message.create(db=db, obj_in=input_msg)
+    with deps.get_db() as db:
+        msg_human = crud.message.create(db=db, obj_in=input_msg)
     # get response
-    agent_response_str = functionality.converser(msg_human)
+    agent_response_str = functionality.converser(msg_human, db)
     # add response to database
     msg_agent = schemas.MessageCreate(
         conv_id=msg_human.conv_id,
@@ -50,7 +51,8 @@ async def converse(
         sender="agent",
         receiver="human",
     )
-    agent_response = crud.message.create(db=db, obj_in=msg_agent)
+    with deps.get_db() as db:
+        agent_response = crud.message.create(db=db, obj_in=msg_agent)
     # return response
     return agent_response
 
@@ -58,4 +60,4 @@ async def converse(
 app.include_router(api_router)
 
 if __name__ == "__main__":
-    uvicorn.run("main:app")
+    uvicorn.run("main:app", reload=True)
